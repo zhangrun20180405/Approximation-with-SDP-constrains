@@ -1,0 +1,610 @@
+def mycallback(m, where):
+    global total_number_of_round,total_number_of_cuts
+
+    if where == GRB.Callback.MIPSOL:
+        f_solution=m.cbGetSolution(m._vars)
+        f_vary=m.getVars()
+
+        
+        Internal_SDP_1={}              # create I internal SDP_series_1 LHS matrix 
+        Internal_SDP_2={}              # create an internal SDP_2 LHS matrix 
+
+        index_f_solution=0
+
+        for i in range(1,I+1):
+            Internal_SDP_1[i]=np.zeros(((3+S)*K+2,(3+S)*K+2))
+        
+        Internal_SDP_2=np.zeros(((3+S)*K+1,(3+S)*K+1))
+        '''
+        pil
+        '''
+        for i in range(1,I+1):
+            #print(f_solution[index_f_solution]  )
+            Internal_SDP_1[i]=Internal_SDP_1[i]+M_pil*f_solution[index_f_solution]   
+            #print('The index is %s'%index_f_solution)
+            index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_pil))
+        #print(index_f_solution)
+           
+        '''
+        lam
+        '''
+        for i in range(1,I+1):
+            for j in range(1,3*K+2):
+                #print(f_solution[index_f_solution]  )
+                #print('lam')
+                #print(f_solution[index_f_solution+1]  )
+                Internal_SDP_1[i]=Internal_SDP_1[i]+M_lam[i,j]*f_solution[index_f_solution]
+                #print('The index is %s'%index_f_solution)
+                index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_lam[i,j]))
+        '''
+        y
+        '''
+        for i in range(1,I+1):                                  # iota, index of subsystems
+            for j in range(1,J[i-1]+1):                              # j index of type in substems J_{\iota}, which is J_i
+                for k in range(1, N[i-1][j-1]+1):                    # k index of component in type j
+                    #print('y')
+                    #print(f_solution[index_f_solution+1]  )                    
+                    Internal_SDP_1[i]=Internal_SDP_1[i]+M_y[i,j,k]*f_solution[index_f_solution]
+                    #print(i,j,k)
+                    #print(f_vary[index_f_solution])
+                    #print('The index is %s'%index_f_solution)
+                    index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_y[i,j,k]))
+        '''
+        phi
+        '''
+        for i in range(1,I+1):
+            for j in range(1,S*K+1):  
+                #print(f_solution[index_f_solution]  )
+                #print('phi')
+                Internal_SDP_1[i]=Internal_SDP_1[i]+M_phi[i,j]*f_solution[index_f_solution]
+                #print(i,j)
+                #print(f_vary[index_f_solution])
+                #print('The index is %s'%index_f_solution)
+                index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_phi[i,j]))
+        #print(index_f_solution)
+        '''
+        gam
+        '''
+        for j in range(1,S*K+1):  
+        
+            for i in range(1,I+1):                
+                #gam_t
+                Internal_SDP_1[i]=Internal_SDP_1[i]-M_gam_t[j]*f_solution[index_f_solution]
+                #print('The index is %s'%index_f_solution)
+            #gam_r
+            Internal_SDP_2=Internal_SDP_2-M_gam_r[j]*f_solution[index_f_solution]
+            index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_gam_t[j]))
+        #print(np.shape(M_gam_r[j]))
+        
+        '''
+        varpi matrix 1~ 3*K+1
+        ''' 
+        for i in range(1,I+1):          
+            for j in range(1,3*K+2):           # index of varpi, and the range is [2K+1, 3K]
+
+                
+                Internal_SDP_1[i]=Internal_SDP_1[i]+M_varpi[i,j]*f_solution[index_f_solution] 
+                
+        
+                #print('varpi')
+                #print(i,j)
+                #print(f_vary[index_f_solution])
+                index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_varpi[i,j]))
+        #print(np.shape(M_varpi[i,j]))
+        
+        '''
+
+        w_ijkmn
+        '''
+        for i in range(1,I+1):
+            wa1=0
+            for j in range(1,J[i-1]+1):
+                for k in range(1,N[i-1][j-1]+1):
+                    wa2=0
+                    wa1+=1
+                    for u in range(1,J[i-1]+1):
+                        for v in range(1,N[i-1][u-1]+1):
+                            wa2+=1
+                            if wa1==wa2:
+                                Internal_SDP_1[i]=Internal_SDP_1[i]+M_w_ijkmn[i,j,k,u,v]*f_solution[index_f_solution]
+
+                                #print('w')
+                                #print(i,j,k,u,v)
+                                #print(f_vary[index_f_solution])
+                                index_f_solution+=1
+        for i in range(1,I+1):
+            wa1=0
+            for j in range(1,J[i-1]+1):
+                for k in range(1,N[i-1][j-1]+1):
+                    wa2=0
+                    wa1+=1
+                    for u in range(1,J[i-1]+1):
+                        for v in range(1,N[i-1][u-1]+1):
+                            wa2+=1
+                            if wa1<wa2:
+                                Internal_SDP_1[i]=Internal_SDP_1[i]+M_w_ijkmn[i,j,k,u,v]*f_solution[index_f_solution]
+                                Internal_SDP_1[i]=Internal_SDP_1[i]+M_w_ijkmn[i,u,v,j,k]*f_solution[index_f_solution]
+                                #print('w')
+                                #print(i,j,k,u,v)
+                                #print(f_vary[index_f_solution])
+                                index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_w_ijkmn[i,j,k,u,v]))
+        '''
+        u
+        '''
+        for i in range(1,I+1):
+            for j in range(1,J[i-1]+1):
+                for k in range(1,N[i-1][j-1]+1):
+
+
+                    Internal_SDP_1[i]= Internal_SDP_1[i]+M_u_ijk[i,j,k]*f_solution[index_f_solution] 
+                    #print('u')
+                    #print(i,j,k)
+                    #print(f_vary[index_f_solution])
+                    
+                    #print('u')
+                    #print(f_solution[index_f_solution+1]  )
+                    index_f_solution+=1
+                    
+                    
+        #print('---------------')
+        #print(np.shape(M_u_ijk[i,j,k]))
+        '''
+        alpha
+        '''
+        for s in range(1,S+1):
+            for k in range(1,K+1):
+
+                for i in range(1,I+1):    
+                    Internal_SDP_1[i]=Internal_SDP_1[i]-M_G_alpha[s,k]*f_solution[index_f_solution]
+                Internal_SDP_2=Internal_SDP_2-M_tilde_G_alpha[s,k]*f_solution[index_f_solution]
+                index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_G_alpha[s,k]))
+        #print(np.shape(M_tilde_G_alpha[s,k]))
+        '''
+        beta
+        '''
+        for s in range(1,S+1):
+            for k in range(1,K+1):
+
+                for i in range(1,I+1):            
+                    Internal_SDP_1[i]= Internal_SDP_1[i]-M_G_beta[s,k]*f_solution[index_f_solution]
+                Internal_SDP_2=Internal_SDP_2-M_tilde_G_beta[s,k]*f_solution[index_f_solution]     
+                
+                # print('beta')
+                #print(f_solution[index_f_solution+1]  )
+                index_f_solution+=1
+        #print('---------------')
+        #print(np.shape(M_G_beta[s,k]))
+        #print(np.shape(M_tilde_G_beta[s,k]))
+        '''
+        N_i
+        '''
+        for i in range(1,I+1):
+            for j in range(1,(S+3)*K+2+1):
+                for k in range(1,(S+3)*K+2+1):
+                    if j==k:
+    
+                        Internal_SDP_1[i]=Internal_SDP_1[i]-M_N_iota[i,j,k]*f_solution[index_f_solution]  
+                        index_f_solution+=1         
+        for i in range(1,I+1):
+            for j in range(1,(S+3)*K+2+1):
+                for k in range(1,(S+3)*K+2+1):
+                    if j<k:
+                        #print(M_N_iota[i,j,k])
+                        Internal_SDP_1[i]=Internal_SDP_1[i]- M_N_iota[i,j,k]*f_solution[index_f_solution] 
+                        Internal_SDP_1[i]=Internal_SDP_1[i]- M_N_iota[i,k,j]*f_solution[index_f_solution]
+                        index_f_solution+=1         
+        #print('---------------')
+        #print(np.shape(M_N_iota[i,j,k]))
+        '''
+        nu
+        '''
+        
+        Internal_SDP_2=Internal_SDP_2+M_nu*f_solution[index_f_solution]
+        index_f_solution+=1   
+        #print('nu')
+        #print(f_solution[index_f_solution+1]  )
+        #print('---------------')
+        #print(np.shape(M_nu))
+        '''
+        theta
+        '''
+        for j in range(1,3*K+1):
+
+            Internal_SDP_2=Internal_SDP_2+M_theta[j]*f_solution[index_f_solution]  
+            index_f_solution+=1   
+        #print('---------------')
+        #print(np.shape(M_theta[j]))
+        '''
+        varphi
+        '''
+        for j in range(1,S*K+1):   
+
+            Internal_SDP_2=Internal_SDP_2+M_varphi[j]*f_solution[index_f_solution]  
+            index_f_solution+=1   
+        #print('---------------')
+        #print(np.shape(M_varphi[j]))
+        '''
+        vartheta
+        '''
+        for j in range(1,3*K+1):     
+            #print(f_solution[index_f_solution+1]  )
+            Internal_SDP_2=Internal_SDP_2+M_vartheta[j]*f_solution[index_f_solution]     
+            index_f_solution+=1   
+            #print('vartheta')
+        #print('---------------')
+        #print(np.shape(M_vartheta[j]))
+        '''
+        N_0
+        '''
+        for j in range(1,(S+3)*K+1+1):
+            for k in range(1,(S+3)*K+1+1):
+                if j==k:
+                    #print(f_solution[index_f_solution]  )
+                    Internal_SDP_2=Internal_SDP_2-M_N_0[j,k]*f_solution[index_f_solution] 
+                    index_f_solution+=1   
+                    
+        for j in range(1,(S+3)*K+1+1):
+            for k in range(1,(S+3)*K+1+1):
+                if j<k:
+                    #print(f_solution[index_f_solution]  )
+                    Internal_SDP_2=Internal_SDP_2-M_N_0[j,k]*f_solution[index_f_solution] 
+                    Internal_SDP_2=Internal_SDP_2-M_N_0[k,j]*f_solution[index_f_solution] 
+                    index_f_solution+=1   
+        #print('---------------')
+        #print(np.shape(M_N_0[j,k]))        
+        #print('tau')
+        #print(f_solution[index_f_solution]  )
+        '''
+        Until here, we get I+1 SDP LHS matrix.
+        
+        
+        for i in range(1,I+1):
+            print(Internal_SDP_1[i])
+            for j in range(0,np.shape(Internal_SDP_1[i])[0]):
+                for k in range(0,np.shape(Internal_SDP_1[i])[0]):
+                    if Internal_SDP_1[i][j][k]!= Internal_SDP_1[i][k][j]:
+                        print('wrong %s~ %s'%(j,k))
+        '''      
+
+        for j in range(0,np.shape(Internal_SDP_2)[0]):
+            #print('shape%s'%(np.shape(Internal_SDP_2)[0]))  
+            for k in range(0,np.shape(Internal_SDP_2)[0]):
+                if Internal_SDP_2[j][k]!= Internal_SDP_2[k][j]:
+                    print('SDP2wrong %s~ %s'%(j,k))  
+        for i in range(1,I+1):
+            #print(Internal_SDP_1[i])
+            for j in range(0,np.shape(Internal_SDP_1[i])[0]):
+                for k in range(0,np.shape(Internal_SDP_1[i])[0]):
+                    if Internal_SDP_1[i][j][k]!= Internal_SDP_1[i][k][j]:
+                        print(Internal_SDP_1[i][j][k]  )
+                        print(Internal_SDP_1[i][k][j])
+                        print('SDP1wrong %s~ %s'%(j,k))
+
+            
+
+        # Store minimal eig value and correlated vector. 
+        eva_1={}
+        eve_1={}
+
+        for i in range(1,I+1):
+            
+            #print('eigsh~~~~~~~')
+            #print(eigenvalues)
+            #print(eigenvectors)
+            #print('End_of_eign---------------------------------')
+            Internal_SDP_1[i]=(Internal_SDP_1[i]+Internal_SDP_1[i].T)/2
+            #print('is matrix internal_SDP_1_%s symmetric?'%(i))
+            #check_symmetric(Internal_SDP_1[i])
+            try:
+                value1,vector1= eigsh(Internal_SDP_1[i], k=1,which='SM')
+                eve_1[i]=vector1[:,0]/np.linalg.norm(vector1[:,0])
+                #print(eve_1[i])
+                eva_1[i]=eva_1_get[0]
+                #print(type(eve_1[i]))
+                #print(type(eva_1[i]))
+                #print(np.shape(eve_1[i]))      
+
+            except:
+
+                value1,vector1=np.linalg.eigh(Internal_SDP_1[i])
+                #print(value1[np.argmin(value1)])
+                eva_1[i]=value1[np.argmin(value1)]
+                eve_1[i]=vector1[:,np.argmin(value1)]/np.linalg.norm(vector1[:,np.argmin(value1)])                          
+        Internal_SDP_2=(Internal_SDP_2+Internal_SDP_2.T)/2   
+        #print('is matrix internal_SDP_2 symmetric?')
+        #check_symmetric(Internal_SDP_2)
+        try:
+            value2,vector2= eigsh(Internal_SDP_2, k=1,which='SM')
+            eve_2=vector2[:,0]/np.linalg.norm(vector2[:,0])
+            eva_2=value2[0]        
+        except:
+
+            value2,vector2=np.linalg.eigh(Internal_SDP_2)
+            eva_2=value2[np.argmin(value2)]
+            eve_2=vector2[:,np.argmin(value2)]/np.linalg.norm(vector2[:,np.argmin(value2)])
+
+
+            
+        '''
+        The Lazy consrtain formualtion part:  
+        '''
+        Internal_SDP_1_constr={}
+        
+        index_f_solution=0
+        
+        for i in range(1,I+1):
+            Internal_SDP_1_constr[i]=[]
+        
+        Internal_SDP_2_constr=[]
+        
+        '''
+        pil
+        '''
+        for i in range(1,I+1):
+            
+            #print('====================')
+            '''
+            print(np.shape(  M_pil[i])  )          
+            print(np.shape(  eve_1[i])  )         
+            print(np.shape(    np.dot(M_pil[i],eve_1[i])  )                   )
+            print(np.shape(     np.dot(       eve_1[i].T   ,     np.dot(M_pil[i],eve_1[i])  )                   ))
+            '''
+            #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_pil,eve_1[i])  )))            
+                 
+            
+
+            Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot(M_pil,eve_1[i])  )*m._vars[index_f_solution]                    )
+
+            index_f_solution+=1
+            
+           
+        '''
+        lam
+        '''
+        for i in range(1,I+1):
+            for j in range(1,3*K+2):
+
+                Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot(M_lam[i,j]   ,  eve_1[i])  )*m._vars[index_f_solution]                 )      
+        
+                index_f_solution+=1
+        #print('lam--------------------------------------')
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_lam[i,j]   ,  eve_1[i])  )))    
+        '''
+        y
+        '''
+        for i in range(1,I+1):                                  # iota, index of subsystems
+            for j in range(1,J[i-1]+1):                              # j index of type in substems J_{\iota}, which is J_i
+                for k in range(1, N[i-1][j-1]+1):                    # k index of component in type j
+                    #print('y')
+                    #print(f_solution[index_f_solution+1]  )    
+                    Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot(  M_y[i,j,k]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+               
+                    #print('The index is %s'%index_f_solution)
+                    index_f_solution+=1
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_y[i,j,k]   ,  eve_1[i])  )))    
+        '''
+        phi
+        '''
+        for i in range(1,I+1):
+            for j in range(1,S*K+1):  
+
+                Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot(  M_phi[i,j]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+        
+                index_f_solution+=1
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_phi[i,j]    ,  eve_1[i])  )))    
+        '''
+        gam
+        '''
+        for j in range(1,S*K+1):  
+        
+            for i in range(1,I+1):                
+                #gam_t
+                Internal_SDP_1_constr[i].append(     -np.dot(       eve_1[i].T   ,     np.dot( M_gam_t[j]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+        
+            Internal_SDP_2_constr.append(     -np.dot(       eve_2.T   ,     np.dot( M_gam_r[j]  ,  eve_2)  )*m._vars[index_f_solution]                 )  
+        
+            index_f_solution+=1
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_gam_t[j]    ,  eve_1[i])  )))    
+        #print(type(np.dot(       eve_2.T   ,     np.dot( M_gam_r[j] ,  eve_2))))    
+        
+        '''
+        varpi matrix 1~ 3*K+1
+        ''' 
+        for i in range(1,I+1):          
+            for j in range(1,3*K+2):           # index of varpi, and the range is [2K+1, 3K]
+
+                Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot( M_varpi[i,j]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+        
+                index_f_solution+=1
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_varpi[i,j]    ,  eve_1[i])  )))    
+        '''
+        w_ijkmn
+        '''
+        for i in range(1,I+1):
+            wa1=0
+            for j in range(1,J[i-1]+1):
+                for k in range(1,N[i-1][j-1]+1):
+                    wa1+=1
+                    wa2=0
+                    for u in range(1,J[i-1]+1):
+                        for v in range(1,N[i-1][u-1]+1):
+                            wa2+=1
+                            if wa1==wa2:
+                                Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot( M_w_ijkmn[i,j,k,u,v]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+          
+                                index_f_solution+=1
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_w_ijkmn[i,j,k,u,v]   ,  eve_1[i])  )))                  
+        for i in range(1,I+1):
+            wa1=0
+            for j in range(1,J[i-1]+1):
+                for k in range(1,N[i-1][j-1]+1):
+                    wa1+=1
+                    wa2=0
+                    for u in range(1,J[i-1]+1):
+                        for v in range(1,N[i-1][u-1]+1):
+                            wa2+=1
+                            if wa1<wa2:
+                                Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot( M_w_ijkmn[i,j,k,u,v]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+                                Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot( M_w_ijkmn[i,u,v,j,k]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+                                index_f_solution+=1
+        '''
+        u
+        '''
+        for i in range(1,I+1):
+            for j in range(1,J[i-1]+1):
+                for k in range(1,N[i-1][j-1]+1):
+
+
+                    Internal_SDP_1_constr[i].append(     np.dot(       eve_1[i].T   ,     np.dot( M_u_ijk[i,j,k]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+         
+                    #print('u')
+                    #print(f_solution[index_f_solution+1]  )
+                    index_f_solution+=1
+        #print(type(np.dot(       eve_1[i].T   ,     np.dot(M_u_ijk[i,j,k]  ,  eve_1[i])  )))  
+        '''
+        alpha
+        '''
+        for s in range(1,S+1):
+            for k in range(1,K+1):
+
+                for i in range(1,I+1):    
+
+                    Internal_SDP_1_constr[i].append(     -np.dot(       eve_1[i].T   ,     np.dot( M_G_alpha[s,k]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+
+                Internal_SDP_2_constr.append(     -np.dot(       eve_2.T   ,     np.dot( M_tilde_G_alpha[s,k]  ,  eve_2)  )*m._vars[index_f_solution]                 )  
+                index_f_solution+=1
+        #print(type(np.dot(       eve_2.T   ,     np.dot( M_tilde_G_alpha[s,k]  ,  eve_2)  )))
+        '''
+        beta
+        '''
+        for s in range(1,S+1):
+            for k in range(1,K+1):
+
+                for i in range(1,I+1):            
+
+                    Internal_SDP_1_constr[i].append(     -np.dot(       eve_1[i].T   ,     np.dot( M_G_beta[s,k] ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+
+                Internal_SDP_2_constr.append(     -np.dot(       eve_2.T   ,     np.dot( M_tilde_G_beta[s,k]  ,  eve_2)  )*m._vars[index_f_solution]                 )  
+                
+                # print('beta')
+                #print(f_solution[index_f_solution+1]  )
+                index_f_solution+=1
+        #print(type(np.dot(       eve_2.T   ,     np.dot( M_tilde_G_beta[s,k]  ,  eve_2)  )))
+        '''
+        N_i
+        '''
+        for i in range(1,I+1):
+            for j in range(1,(S+3)*K+2+1):
+                for k in range(1,(S+3)*K+2+1):
+                    if j==k:
+                        Internal_SDP_1_constr[i].append(     -np.dot(       eve_1[i].T   ,     np.dot( M_N_iota[i,j,k]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+                        index_f_solution+=1         
+        for i in range(1,I+1):
+            for j in range(1,(S+3)*K+2+1):
+                for k in range(1,(S+3)*K+2+1):
+                    if j<k:
+    
+                        Internal_SDP_1_constr[i].append(     -np.dot(       eve_1[i].T   ,     np.dot( M_N_iota[i,j,k]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+                        Internal_SDP_1_constr[i].append(     -np.dot(       eve_1[i].T   ,     np.dot( M_N_iota[i,k,j]  ,  eve_1[i])  )*m._vars[index_f_solution]                 )  
+                        index_f_solution+=1                             
+        '''
+        nu
+        '''
+        
+        Internal_SDP_2_constr.append(     np.dot(       eve_2.T   ,     np.dot( M_nu  ,  eve_2)  )*m._vars[index_f_solution]                 )  
+        index_f_solution+=1   
+        #print(type( np.dot(       eve_2.T   ,     np.dot( M_nu  ,  eve_2)  )))
+        #print('nu')
+        #print(f_solution[index_f_solution+1]  )
+                   
+        '''
+        theta
+        '''
+        for j in range(1,3*K+1):
+
+            Internal_SDP_2_constr.append(     np.dot(       eve_2.T   ,     np.dot(   M_theta[j]    ,  eve_2)  )*m._vars[index_f_solution]                 )  
+            index_f_solution+=1   
+        #print(np.shape(       M_theta[j]          ))
+        #print('theta________________')
+        #print(   type(    np.dot(       eve_2.T   ,     np.dot(   M_theta[j]    ,  eve_2)  )            )   )
+        '''
+        varpi
+        '''
+        for j in range(1,S*K+1):   
+
+            Internal_SDP_2_constr.append(     np.dot(       eve_2.T   ,     np.dot( M_varphi[j]   ,  eve_2)  )*m._vars[index_f_solution]                 )  
+            index_f_solution+=1   
+        #print( np.shape(  M_varphi[j]       )  )  
+        #print(   type(        np.dot(       eve_2[i].T   ,     np.dot( M_varphi[j]   ,  eve_2)  )      )        )
+        '''
+        vartheta
+        '''
+        for j in range(1,3*K+1):     
+
+            Internal_SDP_2_constr.append(     np.dot(       eve_2.T   ,     np.dot( M_vartheta[j]  ,  eve_2)  )*m._vars[index_f_solution]                 )  
+            index_f_solution+=1   
+            #print('vartheta')
+        #print( np.shape(  M_vartheta[j]         )  )
+        #print(   type(        np.dot(       eve_2[i].T   ,     np.dot(M_vartheta[j]    ,  eve_2)  )      )        )
+        '''
+        N_0
+        '''
+        for j in range(1,(S+3)*K+1+1):
+            for k in range(1,(S+3)*K+1+1):
+                if j==k:
+                #print(f_solution[index_f_solution]  )
+             
+                    Internal_SDP_2_constr.append(     -np.dot(       eve_2.T   ,     np.dot( M_N_0[j,k]  ,  eve_2)  )*m._vars[index_f_solution]                 )  
+                    index_f_solution+=1    
+                
+        for j in range(1,(S+3)*K+1+1):
+            for k in range(1,(S+3)*K+1+1):
+                if j<k:
+                #print(f_solution[index_f_solution]  )
+             
+                    Internal_SDP_2_constr.append(     -np.dot(       eve_2.T   ,     np.dot( M_N_0[j,k]  ,  eve_2)  )*m._vars[index_f_solution]                 )
+                    Internal_SDP_2_constr.append(     -np.dot(       eve_2.T   ,     np.dot( M_N_0[k,j]  ,  eve_2)  )*m._vars[index_f_solution]                 )
+                    index_f_solution+=1            
+        #print(   type(            np.dot(       eve_2.T   ,     np.dot( M_N_0[j,k]  ,  eve_2)  )                )           )
+            
+        #return 0
+            
+        for i in range(1,I+1):
+            #print(eva_1[i])
+
+            if  eva_1[i]<-(10**(-1)):
+                #print('Yes, min eigenvalue %s less than 0 in SDP_1_index_%s '%( eva_1[i],  i ))
+                        
+                #print('eig vevtor is :%s'%(eve_1[i]))
+                #print('quicksum is :%s'%(gurobipy.quicksum(Internal_SDP_1_constr[i]  )))
+                m.cbLazy( gurobipy.quicksum(Internal_SDP_1_constr[i]  )     ,GRB.GREATER_EQUAL, 0)
+                #print('Adding a SDPapp series 1 cut --------------------------------------------------------------------------------------------------------------------------------------')
+                total_number_of_cuts+=1
+        
+        #print(eva_2)
+        if  eva_2<-(10**(-1)):
+
+            #print('Yes, min eigenvalue %s less than 0 in SDP_2 '%( eva_1[i] ))
+
+            #print('quicksum is :%s'%(gurobipy.quicksum(Internal_SDP_2_constr  )))
+
+            m.cbLazy( gurobipy.quicksum( Internal_SDP_2_constr )     ,GRB.GREATER_EQUAL, 0)
+            #print('Adding a SDPapp series 2 cut --------------------------------------------------------------------------------------------------------------------------------------')
+            total_number_of_cuts+=1
+        total_number_of_round+=1
