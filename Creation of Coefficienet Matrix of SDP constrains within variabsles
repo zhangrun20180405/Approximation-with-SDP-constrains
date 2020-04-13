@@ -1,0 +1,1025 @@
+I=2                                                   # number of subsystems
+J = [2,2]                                                # types of components in each subsyste, size I*1
+N=[[2,1],[1,2]]                  # number of each type of components in each subsystem, structure size I*J 
+#N=[[2,2]]
+S =1                                             # number of scenarios in each component;
+R0 = 0.8                                              # minimal satisfaction reliablity level
+Df=31
+L=np.ones((I,4))
+U=np.ones((I,4))
+c=np.ones((I,4))
+
+MM=1000000
+    
+    #number of components in Systems(Not subsystems) 
+K = 0
+for j in range(0,len(N)):
+    K = K + sum(N[j])
+    
+    
+p={}    
+#p = np.ones((K,S))/S                              # number of scenarios in each component(in K component)
+for s in range(1,S+1):
+    for i in range(1, I+1):
+        for j in range(1, J[i-1]+1):
+            for k in range(1, N[i-1][j-1]+1 ):
+                p[s,i,j,k]=1/S
+'''
+#seting up the lb and ub 
+xiL= [[[4, 6.9 ,4 ,6.9 ],[4, 6.9, 4,6.9 ],[4, 6.9, 4, 6.9 ]],                                                 [[7.5, 7.4, 7.5 ,7.4],[7.5, 7.4, 7.5, 7.4],[7.5, 7.4, 7.5, 7.4]]]                   #     {[7.3 7.4 7.3 7.4]',[7.3 7.4 7.3 7.4]',[7.3 7.4 7.3 7.4]',[7.3 7.4 7.3 7.4]'}     };
+xiU= [[[8.643, 9, 8.643, 9],[8.643, 9, 8.643, 9],[8.643 ,9 ,8.643 ,9]],                                     [[9.1, 9, 9.1, 9],[9.1 ,9, 9.1 ,9],[9.1 ,9 ,9.1, 9]]]                            #                      {[9.1 9 9.1 9]',[9.1 9 9.1 9]',[9.1 9 9.1 9]',[9.1 9 9.1 9]'}        };
+muL= [[[8.412, 7.91, 8.412, 7.91 ],[8.412, 7.91 ,8.412 ,7.91 ],[8.412, 7.91 ,8.412, 7.91 ]],         [[8.2 ,7.6, 8.2, 7.6],[8.2, 7.6 ,8.2, 7.6],[8.2 ,7.6, 8.2 ,7.6]]]  #      {[8.2 7.6 8.2 7.6]',[8.2 7.6 8.2 7.6]',[8.2 7.6 8.2 7.6]',[8.2 7.6 8.2 7.6]'}     };
+muU= [[[8.5 ,8, 8.5, 8],[8.5 ,8, 8.5 ,8],[8.5 ,8 ,8.5, 8]],                                                     [[8.5, 8 ,8.5 ,8],[8.5, 8 ,8.5 ,8],[8.5, 8 ,8.5, 8]]]                               #                     {[8.5 7.7 8.5 7.7]',[8.5 7.7 8.5 7.7]',[8.5 7.7 8.5 7.7]',[8.5 7.7 8.5 7.7]'}      };
+
+
+xiL= [[[2, 3.9 ,2 ,3.9 ],[2, 3.9, 2,3.9 ],[2, 3.9, 2, 3.9 ]],                                                 [[3.5, 3.4, 3.5 ,3.4],[3.5, 3.4, 3.5, 3.4],[3.5, 3.4, 3.5,3.4]]]                   #     {[7.3 7.4 7.3 7.4]',[7.3 7.4 7.3 7.4]',[7.3 7.4 7.3 7.4]',[7.3 7.4 7.3 7.4]'}     };
+xiU= [[[20.643, 21, 20.643, 21],[20.643, 21, 20.643, 21],[20.643 ,21 ,20.643 ,21]],                                     [[21.1, 21, 21.1, 21],[21.1 ,21, 21.1 ,21],[21.1 ,21 ,21.1, 21]]]                            #                      {[9.1 9 9.1 9]',[9.1 9 9.1 9]',[9.1 9 9.1 9]',[9.1 9 9.1 9]'}        };
+muL= [[[8.412, 7.91, 8.412, 7.91 ],[8.412, 7.91 ,8.412 ,7.91 ],[8.412, 7.91 ,8.412, 7.91 ]],         [[8.2 ,7.6, 8.2, 7.6],[8.2, 7.6 ,8.2, 7.6],[8.2 ,7.6, 8.2 ,7.6]]]  #      {[8.2 7.6 8.2 7.6]',[8.2 7.6 8.2 7.6]',[8.2 7.6 8.2 7.6]',[8.2 7.6 8.2 7.6]'}     };
+muU= [[[9.5 ,9, 9.5, 9],[9.5 ,9, 9.5 ,9],[9.5 ,9 ,9.5, 9]],                                                     [[9.5, 9 ,9.5 ,9],[9.5, 9 ,9.5 ,9],[9.5, 9 ,9.5, 9]]]                               #                     {[8.5 7.7
+
+
+xiL= [[[4,4],[4,4 ],[4,4 ]],                                             [[4,4],[4,4 ],[4,4 ]]                          ]
+xiU= [[[10,10],[10,10 ],[10,10 ]],                                            [[10,10],[10,10 ],[10,10 ]]   ]                   
+muL= [[[5,5],[5,5 ],[5,5 ]],                                            [[5,5],[5,5 ],[5,5 ]]    ] 
+muU= [[[6,6],[6,6],[6,6 ]],                                            [[6,6],[6,6],[6,6 ]]    ] 
+
+
+xiL= [[[1,1],[1,1 ],[1,1 ]],                          [[1,1],[1,1 ],[1,1 ]]                      ]
+xiU= [[[10,10],[10,10 ],[10,10 ]],                                            [[10,10],[10,10 ],[10,10 ]]   ]                   
+muL= [[[5,5],[5,5 ],[5,5 ]],                                            [[5,5],[5,5 ],[5,5 ]]    ] 
+muU= [[[6,6],[6,6],[6,6 ]],                                            [[6,6],[6,6],[6,6 ]]    ] 
+
+'''     
+
+
+# In[5]:
+
+
+xiL= [[[4,4],[4,4 ],[4,4 ]],  [[4,4],[4,4 ],[4,4 ]],           [[4,4],[4,4 ],[4,4 ]]                   ]
+xiU= [[[10,10],[10,10 ],[10,10 ]],           [[10,10],[10,10 ],[10,10 ]],                                     [[10,10],[10,10 ],[10,10 ]]   ]                   
+muL= [[[5,5],[5,5 ],[5,5 ]] ,       [[5,5],[5,5 ],[5,5 ]] ,                                             [[5,5],[5,5 ],[5,5 ]]    ] 
+muU= [        [[6,6],[6,6],[6,6 ]]  ,                [[6,6],[6,6],[6,6 ]]  ,                                     [[6,6],[6,6],[6,6 ]]    ] 
+
+
+
+for i in range(0,I):
+    for j in range(0,J[i]):        
+        L[i][j]= 1                             # the minimal required number of components of type j in subsystem i
+        U[i][j]= 4                             # the maximal required number of components of type j in subsystem i
+        #x[i][j]= 1         #the initial redundancy usage (all use)
+        c[i][j]= 1.5                           # the cost of component of type j in subsystem i    
+
+
+# In[6]:
+
+
+#L
+
+
+# In[7]:
+
+
+xi_sL = np.zeros((K,S))
+mu_sL = np.zeros((K,S))
+xi_sU = np.zeros((K,S))
+mu_sU = np.zeros((K,S))
+for s in range(0,S):
+    #construct xi_sL, xi_sU, xi_sL, xi_sU
+    xi_L =[]
+    mu_L  =[]
+    xi_U  =[]
+    mu_U  =[]
+    for k in range(0,I):
+
+        for j in range(0,J[k]):
+
+            xi_L.extend( (xiL[s][k][j]*np.ones((N[k][j]))).tolist())
+            xi_U.extend( (xiU[s][k][j]*np.ones((N[k][j]))).tolist())
+            mu_L.extend( (muL[s][k][j]*np.ones((N[k][j]))).tolist())
+            mu_U.extend( (muU[s][k][j]*np.ones((N[k][j]))).tolist())
+
+    xi_sL.T[s]=np.asarray(xi_L).copy()
+    mu_sL.T[s]=np.asarray(mu_L).copy()
+    xi_sU.T[s]=np.asarray(xi_U).copy()
+    mu_sU.T[s]=np.asarray(mu_U).copy()
+
+
+# In[8]:
+
+
+
+'''
+Testing the xi lower matrix
+xi_sL
+'''
+
+
+# In[9]:
+
+
+K
+
+
+# In[10]:
+
+
+'''
+Formulate the matrix of H, \tildeQ, 
+'''
+H = np.zeros((3*K, (S+3)*K))
+for s in range(0,S):
+    H [0:K][:,(s)*K:(s+1)*K]                       = np.diag( -xi_sL.T[s]).copy()
+    H [K:2*K][:,(s)*K:(s+1)*K]                   = np.diag(-xi_sU.T[s]).copy()
+    H [2*K:3*K][:,(s)*K:(s+1)*K]                = np.eye(K,K).copy()
+    H [1-1:K][:, S*K+1-1:(S+1)*K] = np.eye(K,K)
+    H [1-1:K][:, (S+1)*K+1-1:(S+2)*K] = -np.eye(K,K)
+    H [K+1-1:2*K][:, S*K+1-1:(S+1)*K] = np.eye(K,K)
+    H [K+1-1:2*K][:, (S+2)*K+1-1:(S+3)*K] = np.eye(K,K)
+tildeQ=np.concatenate((H , np.zeros((3*K,1))),1)
+
+
+# In[11]:
+
+
+'''
+# calculate the number of components of each subsystem, and stored in Ki with Ki[i]
+Ki = np.zeros((I,1))
+for i in range(0,I):
+    Ki[i] = sum(N[i])
+#sumKi  we get the sumKi
+np.concatenate((np.zeros((1,1)),np.cumsum(Ki,axis=0)))
+
+
+'''
+
+
+# In[12]:
+
+
+
+tildeQ
+
+
+# In[ ]:
+
+
+
+
+
+# In[13]:
+
+
+# reformulate cost vector c 
+cc = {}
+for i in range(1,I+1):
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            cc[i,j,k]=c[i-1][j-1]
+        
+
+
+# In[14]:
+
+
+#cc
+
+
+# In[15]:
+
+
+#1. matrix for pi_l
+M_pil=block_diag([[1]],np.zeros((((S+3)*K+1),(S+3)*K+1)))
+
+pil={} #  create an empty dictionary to store the pi_iota variables data
+A_1={}  #  create an empty dictionary to store the pi_iota variables* Matrix coeffcient data
+for i in range(1,I+1):
+    pil[i] = m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='pil_iota_{}'.format(str(i)))
+    m.update()
+for i in range(1,I+1):    
+    A_1[i]=M_pil*pil[i]
+
+
+# In[ ]:
+
+
+
+
+
+# In[16]:
+
+
+
+#if np.transpose(M_pil.all()) ==M_pil.all():
+#    print('Y')
+
+
+# In[17]:
+
+
+
+                
+lam={} #create an empty dictionary to store the  lambda_iota  variables data 
+for i in range(1,I+1):                                  # iota
+    for j in range(1,3*K+2):
+        lam[i,j]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='lambda_iota_{}_j_{}'.format(str(i),str(j)))
+m.update()
+
+
+# In[18]:
+
+
+M_lam={}   #create an empty dictionary to store the  lambda_iota  coefficient data 
+for i in range(1,I+1):
+    for j in range(1,3*K+1):
+        # the difference between H,Q index and coefficient index is just 1
+        M_lam[i,j]=np.concatenate((np.concatenate(([[0]], 0.5*tildeQ[j-1,:].reshape(1,(S+3)*K+1)),1),np.concatenate((0.5*tildeQ[j-1,:].reshape(1,(S+3)*K+1).T, np.zeros(((S+3)*K+1,(S+3)*K+1))),1)),axis=0)
+    M_lam[i,3*K+1]=np.concatenate((np.concatenate(([[0]], np.concatenate((0.5*np.zeros((1,(S+3)*K)),[[1/2]]),axis=1)),1),np.concatenate((np.concatenate((0.5*np.zeros(((S+3)*K,1)),np.array([[1/2]])),axis=0),np.zeros(((S+3)*K+1,(S+3)*K+1))),axis=1)),axis=0)
+
+A_2={}  # create an empty dictionary to store the  lambda_iota variables* coefficient matrix data 
+for i in range(1,I+1):
+    for j in range(1,3*K+2):
+        A_2[i,j]=M_lam[i,j]*lam[i,j]
+
+
+# In[19]:
+
+
+A_2[1 ,13]
+
+
+# In[20]:
+
+
+'''
+
+for i in range(1,I+1):
+    for j in range(1,3*K+2):
+        check_symmetric(M_lam[i,j])
+
+
+'''
+
+
+# In[21]:
+
+
+'''
+np.shape(M_lam[1,19])
+M_lam[1,1][:,0]
+M_lam[1,19][0]
+lam[1,19]
+
+'''
+
+
+# In[22]:
+
+
+'''
+test:
+#M_lam[1,1]
+'''
+
+
+# In[23]:
+
+
+# variable y
+y={}
+# coefficient Matrix of y 
+M_y={}
+# y symmetrics matrix with variable and coefficient initialization
+A_3={} 
+for i in range(1,I+1):                                  # iota, index of subsystems
+    for j in range(1,J[i-1]+1):                              # j index of type in substems J_{\iota}, which is J_i
+        for k in range(1, N[i-1][j-1]+1):                    # k index of component in type j
+            y[i,j,k]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='y_iota_{}_j_{}_k_{}'.format(str(i),str(j),str(k)))            
+m.update()
+for i in range(1,I+1):                                  # iota, index of subsystems
+    for j in range(1,J[i-1]+1):                             # j index of type in substems J_{\iota}, which is J_i
+        #print("j=%s"%j)
+        for k in range(1, N[i-1][j-1]+1):
+            #print("k=%s"%k)# k index of component in type j
+            zero_in_the_left_number=S*K+sum(sum(N[u][v] for v in range(0,J[u])) for u in range(0,i-1))+sum(N[i-1][v]  for v in range(0,j-1))+k-1 # the number of zero in left 1.
+            upperpart_of_M_y=1/2*np.concatenate((np.concatenate((np.zeros((1,zero_in_the_left_number+1  )),[[1]]),axis=1), np.zeros((1,(S+3)*K+1-zero_in_the_left_number-1))),axis=1)
+            lowerpart_of_M_y=np.concatenate((1/2*np.concatenate((np.concatenate((np.zeros((1,zero_in_the_left_number )),[[1]]),axis=1), np.zeros((1,(S+3)*K+1-zero_in_the_left_number-1))),axis=1).T,np.zeros(((S+3)*K+1,(S+3)*K+1))),axis=1)
+            M_y[i,j,k]=np.concatenate((upperpart_of_M_y,lowerpart_of_M_y),axis=0)
+            A_3[i,j,k]=M_y[i,j,k]*y[i,j,k]
+            #print(A_3[i,j,k])
+            '''debug part
+            print('bug1')
+            sum(sum(N[u][v] for v in range(0,J[u])) for u in range(0,i-1))
+            print("bug2")
+            sum(N[i-1][v]  for v in range(0,j-1))+k-1 
+            print("bug3")            
+            va=1/2*np.concatenate((np.concatenate((np.zeros((1,zero_in_the_left )),[[1]]),axis=1), np.zeros((1,(S+3)*K+1-zero_in_the_left))),axis=1).T
+            np.concatenate((np.concatenate((1/2*np.zeros(((S+3)*K,1)),np.array([[1]])),axis=0),np.zeros(((S+3)*K+1,(S+3)*K+1))),axis=1)
+            np.shape(upperpart_of_M_y)
+            np.shape(1/2*np.concatenate((np.concatenate((np.zeros((1,zero_in_the_left )),[[1]]),axis=1), np.zeros((1,(S+3)*K+1-zero_in_the_left-1))),axis=1).T)
+            np.shape(np.zeros(((S+3)*K+1,(S+3)*K+1)))            
+            '''
+
+
+# In[ ]:
+
+
+
+
+
+# In[24]:
+
+
+'''
+
+
+
+for i in range(1,I+1):                                  # iota, index of subsystems
+    for j in range(1,J[i-1]+1):                             # j index of type in substems J_{\iota}, which is J_i
+        #print("j=%s"%j)
+        for k in range(1, N[i-1][j-1]+1):
+            check_symmetric(M_y[i,j,k])
+'''
+
+
+# In[ ]:
+
+
+
+
+
+# In[25]:
+
+
+'''
+y_ijk
+
+subsystem : 1
+type 1
+component 1 
+ shoud in 1+ S*K +1 -1
+ 
+
+M_y[1,1,1][0]
+M_y[1,1,1][13]
+M_y[1,1,1][:,0]
+'''
+#np.shape(M_y[1,1,1])
+
+
+# In[26]:
+
+
+#variable phi initialize
+phi={}
+# Matrix of phi
+M_phi={}
+# phi symmetrics matrix with variable and coefficient initialization
+A_4={} 
+for i in range(1,I+1):
+    for j in range(1,S*K+1):           # index of j sets from 1 to S*K , strat from 1 and open right in S*K+1 ,so the ending point is S*K
+        phi[i,j]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='phi_i_{}_j_{}'.format(str(i),str(j)))    
+m.update()                               #update model so that the variable can be recongnized.
+for i in range(1,I+1):
+    for j in range(1,S*K+1):  
+        zero_of_the_left_in_vector_M_phi=np.zeros((1,(3+S)*K+1))
+        zero_of_the_left_in_vector_M_phi[0][j-1]=1/2
+        zero_of_the_left_in_vector_M_phi_diag=np.zeros((1,(3+S)*K+1))
+        zero_of_the_left_in_vector_M_phi_diag[0][j-1]=-1
+        upper_of_M_phi=np.concatenate(([[0]],zero_of_the_left_in_vector_M_phi),axis=1)
+        lower_of_M_phi=np.concatenate((    zero_of_the_left_in_vector_M_phi.T    ,   np.diag(zero_of_the_left_in_vector_M_phi_diag.reshape((3+S)*K+1))         ),axis=1)
+        M_phi[i,j]=np.concatenate( (       upper_of_M_phi            ,             lower_of_M_phi    ),axis=0 )
+        A_4[i,j]=M_phi[i,j]*phi[i,j]
+
+
+# In[27]:
+
+
+M_phi[1,4]
+
+
+# In[28]:
+
+
+'''
+
+
+
+
+M_phi[1,3][:,3]
+M_phi[1,1]
+for i in range(1,I+1):
+    for j in range(1,S*K+1):  
+            check_symmetric(M_phi[i,j])
+'''
+
+
+# In[29]:
+
+
+'''
+Testing Phi
+M_phi[1]
+
+'''
+
+
+# In[30]:
+
+
+#variable gam_t
+gam={}
+# Matrix of gam_t
+M_gam_t={}
+# gam_t symmetrics matrix with variable and coefficient initialize part 
+A_5={} 
+for j in range(1,S*K+1):           # index of j sets from 1 to S*K , strat from 1 and open right in S*K+1 ,so the ending point is S*K
+    gam[j]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='gam_j_{}'.format(str(j)))    
+m.update()                               #update model so that the variable can be recongnized.
+for j in range(1,S*K+1):  
+    zero_of_the_left_in_vector_M_gam_t=np.zeros((1,(3+S)*K+1))
+    zero_of_the_left_in_vector_M_gam_t[0][j-1]=-1/2
+    zero_of_the_left_in_vector_M_gam_t_diag=np.zeros((1,(3+S)*K+1))
+    upper_of_M_gam_t=np.concatenate(([[0]],zero_of_the_left_in_vector_M_gam_t),axis=1)
+    lower_of_M_gam_t=np.concatenate((    zero_of_the_left_in_vector_M_gam_t.T    ,   np.diag(zero_of_the_left_in_vector_M_gam_t_diag.reshape((3+S)*K+1))         ),axis=1)
+    M_gam_t[j]=np.concatenate( (       upper_of_M_gam_t            ,             lower_of_M_gam_t    ),axis=0 )
+    A_5[j]=M_gam_t[j]*gam[j]
+
+
+# In[31]:
+
+
+
+'''
+M_gam_t[1]
+for j in range(1,S*K+1):  
+    check_symmetric(M_gam_t[j])
+
+'''
+M_gam_t[1]
+
+
+# In[32]:
+
+
+#variable varpi
+varpi={}
+# Matrix of varpi
+M_varpi={}
+# varpi symmetrics matrix with variable and coefficient initialize part 
+A_6={}
+
+
+'''
+varpi matrix  1 ~K part
+''' 
+for i in range(1,I+1):  
+    for j in range(1,K+1):           # index of j sets from 1 to K , strat from 1 and open right in K+1 ,so the ending point is K
+        varpi[i,j]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='varpi_i_{}_j_{}'.format(str(i),str(j)))            
+    m.update()                               #update model so that the variable can be recongnized.
+
+
+
+    for j in range(1,K+1): 
+        upper_of_M_varpi=np.zeros((1,(S+3)*K+2))
+        '''
+        Notes , here the Matrix of  each variable should be defined once each subloop.
+        '''
+        
+        varpi_1_to_k_initial_zeros=np.zeros(((3+S)*K+1,(3+S)*K+1))
+        
+        # start embeding elements of Matrix
+        
+        varpi_1_to_k_initial_zeros[S*K+j-1][S*K+j-1]=1                                                                 # row SK+j, column SK+j        
+        varpi_1_to_k_initial_zeros[S*K+j-1][S*K+K+j-1]=-1                                                            # row SK+j, column SK+K+j           
+        varpi_1_to_k_initial_zeros[S*K+K+j-1][S*K+j-1]=-1                                                                 # row SK+K+j, column SK+j        
+        varpi_1_to_k_initial_zeros[S*K+K+j-1][S*K+K+j-1]=1                                                            # row SK+K+j, column SK+K+j   
+        for s1 in range(1,S+1):
+            varpi_1_to_k_initial_zeros[j-1+(s1-1)*K][S*K+j-1]=-xi_sL[j-1][s1-1]                                 # row 0~SK, column SK~SK+K
+            varpi_1_to_k_initial_zeros[j-1+(s1-1)*K][S*K+K+j-1]=xi_sL[j-1][s1-1]                            # row 0~SK, column SK+K~SK+2K
+            varpi_1_to_k_initial_zeros[S*K+j-1][j-1+(s1-1)*K]= -xi_sL[j-1][s1-1]                                          # row SK~SK+K, column 0~SK
+            varpi_1_to_k_initial_zeros[S*K+K+j-1][j-1+(s1-1)*K]= xi_sL[j-1][s1-1]                                      # row SK~SK+2K, column 0~SK
+            for s2 in range(1,S+1):
+                varpi_1_to_k_initial_zeros[j-1+(s1-1)*K][j-1+(s2-1)*K]=xi_sL[j-1][s1-1]*xi_sL[j-1][s2-1]                # xi_sL[][]*xi_sL
+        QvarpiQ=varpi_1_to_k_initial_zeros
+        lower_of_M_varpi=np.concatenate((np.zeros((1,(S+3)*K+1)).T,QvarpiQ),axis=1)
+        M_varpi[i,j]=np.concatenate((upper_of_M_varpi,lower_of_M_varpi),axis=0)
+        A_6[i,j]=M_varpi[i,j]*varpi[i,j]
+        '''
+        Coding Warning: Remember s strat from 1 !!! not 0!!!!
+
+        : Above matrix is varified!
+        '''
+
+        '''
+        varpi matrix  K+1 ~2*K part
+        ''' 
+       
+    for j in range(K+1,2*K+1):           # index of varpi, and the range is [K+1, 2K]
+        varpi[i,j]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='varpi_i_{}_j_{}'.format(str(i),str(j)))    
+    m.update()                               #update model so that the variable can be recongnized.    
+
+    for j in range(K+1,2*K+1):         
+        index_j=j-K                              # index of index_j sets should  from 1 to K , strat from 1 and open right in K+1 ,so the ending point is K  
+        '''
+        For index range between [0,K-1],liek xi_sL,xi_sU...  
+        '''
+        upper_of_M_varphi=np.zeros((1,(S+3)*K+2))
+        varpi_k_to_2k_initial_zeros=np.zeros(((3+S)*K+1,(3+S)*K+1))
+        varpi_k_to_2k_initial_zeros[S*K+index_j-1][S*K+index_j-1]=1                                                                 # row SK+index_j, column SK+index_j       
+        varpi_k_to_2k_initial_zeros[S*K+index_j-1][S*K+2*K+index_j-1]=1                                                            # row SK+index_j, column SK+2K+index_j         
+        varpi_k_to_2k_initial_zeros[S*K+2*K+index_j-1][S*K+index_j-1]=1                                                                 # row SK+2K+index_j, column SK+K+index_j     
+        varpi_k_to_2k_initial_zeros[S*K+2*K+index_j-1][S*K+2*K+index_j-1]=1                                                            # row SK+2K+index_j, column SK+2K+index_j  
+        for s1 in range(1,S+1):        
+
+            varpi_k_to_2k_initial_zeros[index_j-1+(s1-1)*K][S*K+index_j-1]= - xi_sU[index_j-1][s1-1]                                                       # row 0~SK, column SK~SK+K
+            varpi_k_to_2k_initial_zeros[index_j-1+(s1-1)*K][S*K+2*K+index_j-1]= - xi_sU[index_j-1][s1-1]                                               # row 0~SK, column SK+2K~SK+3K
+            varpi_k_to_2k_initial_zeros[S*K+index_j-1][index_j-1+(s1-1)*K]=          - xi_sU[index_j-1][s1-1]                                                                    # row SK~SK+K, column 0~SK
+            varpi_k_to_2k_initial_zeros[S*K+2*K+index_j-1][index_j-1+(s1-1)*K]=  - xi_sU[index_j-1][s1-1]                                                                # row SK~SK+2K, column 0~SK            
+            for s2 in range(1,S+1):
+                varpi_k_to_2k_initial_zeros[index_j-1+(s1-1)*K][index_j-1+(s2-1)*K]=xi_sU[index_j-1][s1-1]*xi_sU[index_j-1][s2-1]                #row 0~SK, column 0~SK varpi_k~varphi_2k
+        QvarpiQ=varpi_k_to_2k_initial_zeros
+        lower_of_M_varpi=np.concatenate((np.zeros((1,(S+3)*K+1)).T,QvarpiQ),axis=1)
+        M_varpi[i,j]=np.concatenate((upper_of_M_varpi,lower_of_M_varpi),axis=0)
+        A_6[i,j]=M_varpi[i,j]*varpi[i,j]
+    '''
+    varpi matrix  2*K+1 ~3*K
+    ''' 
+      
+    for j in range(2*K+1,3*K+1):           # index of varpi, and the range is [2K+1, 3K]
+        varpi[i,j]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='varpi_i_{}_j_{}'.format(str(i),str(j)))    
+    m.update()                               #update model so that the variable can be recongnized.    
+
+    for j in range(2*K+1,3*K+1):         
+        index_j=j-2*K                              # index of index_j sets should  from 1 to K , strat from 1 and open right in K+1 ,so the ending point is K
+        upper_of_M_varpi=np.zeros((1,(S+3)*K+2))
+        varpi_2k_to_3k_initial_zeros=np.zeros(((3+S)*K+1,(3+S)*K+1))
+        for s1 in range(1,S+1):        
+            for s2 in range(1,S+1):
+                varpi_2k_to_3k_initial_zeros[index_j-1+(s1-1)*K][index_j-1+(s2-1)*K]=1                                                                  #row 0~SK, column 0~SK varpi_2k~varphi_3k
+        QvarpiQ=varpi_2k_to_3k_initial_zeros
+        lower_of_M_varpi=np.concatenate((np.zeros((1,(S+3)*K+1)).T,QvarpiQ),axis=1)
+        M_varpi[i,j]=np.concatenate((upper_of_M_varpi,lower_of_M_varpi),axis=0)
+        A_6[i,j]=M_varpi[i,j]*varpi[i,j]
+
+    '''
+    varpi matrix  3*K+1
+    ''' 
+         
+    varpi[i,3*K+1]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='varpi_i_{}_j_{}'.format(str(i),str(3*K+1)))    
+    m.update()                               #update model so that the variable can be recongnized.
+    
+    
+  
+    upper_of_M_varpi=np.zeros((1,(S+3)*K+2))
+    lower_of_M_varpi=np.concatenate((np.zeros((1,(S+3)*K+1)).T,block_diag(np.zeros((((S+3)*K),(S+3)*K)),[[1]])),axis=1)
+    M_varpi[i,3*K+1]=np.concatenate((upper_of_M_varpi,lower_of_M_varpi),axis=0)
+    A_6[i,3*K+1]=M_varpi[i,3*K+1]*varpi[i,3*K+1]
+    
+    
+'''
+Verified test: 
+M_varpi[1,1][1,:]    
+
+M_varpi[1,19]
+
+Result: correct
+'''
+
+    
+for i in range(1,I+1):
+    for j in range(1,3*K+2):
+        print(A_6[i,j][11,12])
+        print(A_6[i,j][12,11])
+
+
+# In[33]:
+
+
+check_symmetric(M_varpi[1,1])
+#M_varpi[1,4]
+
+
+# In[34]:
+
+
+
+'''
+M_varpi[1,2]
+for i in range(1,I+1):          
+    for j in range(1,3*K+2):           # index of varpi, and the range is [2K+1, 3K]
+        check_symmetric(M_varpi[i,j])
+        for u in range(0,(S+3)*K+2):
+            for v in range(0,(S+3)*K+2):
+                if M_varpi[i,j][u][v]!=M_varpi[i,j][v][u]:
+                    print('wrong%s%s'%(u,v))
+
+'''
+
+                
+
+
+# In[35]:
+
+
+
+
+#Testing part of Matrix varpi
+'''
+
+M_varpi[1,1][0]
+M_varpi[1,1][7,:]
+M_varpi[1,1][13,:]
+M_varpi[1,1][19,:]
+
+M_varpi[1,7][1]
+M_varpi[1,7][7,:]
+#
+#M_varpi[1,7][25,:]
+
+
+
+M_varpi[1,10][4]
+M_varpi[1,10][10,:]
+
+
+M_varpi[1,4][4,:]
+M_varpi[1,4][10]
+M_varpi[1,4][16]
+M_varpi[1,7][13,:]
+
+'''
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[36]:
+
+
+#variable w
+w_ijkmn={}
+# Matrix of w
+M_w_ijkmn={}
+# w symmetrics part 
+A_7={}
+for i in range(1,I+1):
+    Sum_Kij_1=0
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            Sum_Kij_1+=1
+            Sum_Kij_2=0
+            for u in range(1,J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    Sum_Kij_2+=1
+                    print(i,j,k,u,v)
+                    if Sum_Kij_1==Sum_Kij_2:
+                        w_ijkmn[i,j,k,u,v]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='w_ijkmn_i_{}_j_{}_k_{}_u_{}_v_{}'.format(str(i),str(j),str(k),str(u),str(v)))    
+m.update()
+
+for i in range(1,I+1):
+    Sum_Kij_1=0
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            Sum_Kij_1+=1
+            Sum_Kij_2=0
+            for u in range(1,J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    Sum_Kij_2+=1
+                    #print(i,j,k,u,v)
+                    if Sum_Kij_1<Sum_Kij_2:
+                        w_ijkmn[i,j,k,u,v]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='w_ijkmn_i_{}_j_{}_k_{}_u_{}_v_{}'.format(str(i),str(j),str(k),str(u),str(v)))    
+                        w_ijkmn[i,u,v,j,k]=w_ijkmn[i,j,k,u,v]
+m.update()
+
+
+
+
+'''
+ define the Matrix of w^\iota , Y(W_\iota)
+'''
+for i in range(1,I+1):
+    Sum_Kij_1=0
+    
+    #sum(  N[i-1][j-1]  for j in range(1,J[i-1]+1))
+    
+    Sum_Kij_before_iota=sum(sum(  N[i_be-1][j_be-1]  for j_be in range(1,J[i_be-1]+1))  for i_be in range(1,i) )
+    for j in range(1, J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            Sum_Kij_1=Sum_Kij_1+1
+            Sum_Kij_2=0
+            for u in range(1, J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    Sum_Kij_2=Sum_Kij_2+1
+                    M_tilde_Y_w_initial=np.zeros(((S+3)*K+1,(S+3)*K+1))
+                    '''
+                    The number of left part of variables in matrix W
+                    '''
+                    #print(   S*K+Sum_Kij_before_iota+ Sum_Kij_1-1 )
+                    #print(S*K,Sum_Kij_before_iota,Sum_Kij_1)
+                    # here right side range is open, thus i-1 is the max range of i_be (before)
+                    M_tilde_Y_w_initial[       S*K+Sum_Kij_before_iota+ Sum_Kij_1-1    ][  S*K+Sum_Kij_before_iota+ Sum_Kij_2-1     ]=1
+                    upper_of_M_w_ijk=np.zeros((1,(S+3)*K+2))
+                    lower_of_M_w_ijk=np.concatenate((np.zeros((1,(S+3)*K+1)).T,M_tilde_Y_w_initial),axis=1)
+                    M_w_ijkmn[i,j,k,u,v]=np.concatenate((upper_of_M_w_ijk,lower_of_M_w_ijk),axis=0)
+                    A_7[i,j,k,u,v]=M_w_ijkmn[i,j,k,u,v]*w_ijkmn[i,j,k,u,v]
+
+for i in range(1,I+1):
+    Sum_Kij_1=0
+    
+    #sum(  N[i-1][j-1]  for j in range(1,J[i-1]+1))
+    
+    Sum_Kij_before_iota=sum(sum(  N[i_be-1][j_be-1]  for j_be in range(1,J[i_be-1]+1))  for i_be in range(1,i) )
+    for j in range(1, J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            Sum_Kij_1=Sum_Kij_1+1
+            Sum_Kij_2=0
+            for u in range(1, J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    Sum_Kij_2=Sum_Kij_2+1
+                    print(A_7[i,j,k,u,v][11,12])
+                    print(A_7[i,j,k,u,v][12,11])
+
+
+# In[37]:
+
+
+#check_symmetric(M_w_ijkmn[1,1,2,2,2])
+#M_w_ijkmn[1,2,2,2,2]
+
+
+# In[38]:
+
+
+
+'''
+
+for i in range(1,I+1):
+    for j in range(1, J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            for u in range(1, J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    check_symmetric(M_w_ijkmn[i,j,k,u,v])
+
+'''
+
+
+# In[39]:
+
+
+'''
+w_auxi={}
+w_auxi[1,1,1,1,1]=m.addVar(vtype=GRB.CONTINUOUS,name='w_ijkmn_i_{}_j_{}_k_{}_m_{}_n_{}'.format(str(1),str(1),str(1),str(1),str(1)))  
+
+'''
+
+
+# In[40]:
+
+
+
+
+
+
+
+'''
+Test part log
+# test if the number of zeros in left side of variables 
+i=3
+Sum_Kij_before_iota=sum(sum(  N[i_be-1][j-1]  for j in range(1,J[i_be-1]+1))  for i_be in range(1,i) )       
+Sum_Kij_before_iota
+
+# test if the w_111 in the right column
+M_w_ijk[1,1,1][:,25]
+M_w_ijk[1,1,1][25,:]
+
+M_w_ijkmn[1,1,1,1,1][:,13]
+M_w_ijkmn[1,1,1,1,1][7,:]
+
+
+'''
+# test if the w_11111 in the right column
+
+
+# In[41]:
+
+
+#variable u
+u_ijk={}
+# Matrix of w
+M_u_ijk={}
+# w symmetrics part 
+A_8={}
+
+
+for i in range(1,I+1):
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            
+            u_ijk[i,j,k]=m.addVar(ub=MM,lb=-MM,vtype=GRB.CONTINUOUS,name='u_ijk_i_{}_j_{}_k_{}'.format(str(i),str(j),str(k)))    
+m.update()
+for i in range(1,I+1):
+    Sum_Kij=0
+    Sum_Kij_before_iota=sum(sum(  N[i_be-1][j_be-1]  for j_be in range(1,J[i_be-1]+1))  for i_be in range(1,i) )
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            Sum_Kij+=1
+            M_tilde_u_ijk_initial=np.zeros(((S+3)*K+2,(S+3)*K+2))
+            '''
+            last row and last column in each matrix of u_ijk
+            '''
+            #print(1+S*K+Sum_Kij_before_iota+Sum_Kij          -1 )
+            M_tilde_u_ijk_initial[ 1+S*K+Sum_Kij_before_iota+Sum_Kij          -1    ][                                     (S+3)*K+2      -1           ]=1
+            M_tilde_u_ijk_initial[     (S+3)*K+2                                                -1  ][1+      S*K+Sum_Kij_before_iota+Sum_Kij -1   ]=1
+            M_u_ijk[i,j,k]=M_tilde_u_ijk_initial
+            A_8[i,j,k]=M_u_ijk[i,j,k]*u_ijk[i,j,k]
+            '''
+            Remember:
+            dictionary 's  structure is [ i , j , k , l ....]
+            which may cause : KEYERROR 1
+
+            Testing the Matrix of u in the last row and last column 
+            # last column
+            M_u_ijk[1,1][:,-1]
+            # last row
+            M_u_ijk[1,1][-1,:]
+            
+            M_u_ijk[1,1,1][:,-1]
+
+            M_u_ijk[1,1,1][-1,:]
+            '''
+
+
+# In[42]:
+
+
+#M_u_ijk[1,2,2]
+
+
+# In[43]:
+
+
+'''
+Testing part : Matrix u
+
+M_u_ijk[1,1,1][:,-1]
+
+M_u_ijk[1,1,1][:,-1]
+for i in range(1,I+1):
+    Sum_Kij=0
+    Sum_Kij_before_iota=sum(sum(  N[i_be-1][j_be-1]  for j_be in range(1,J[i_be-1]+1))  for i_be in range(1,i) )
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            check_symmetric(M_u_ijk[i,j,k])
+'''
+
+
+# In[44]:
+
+
+#variable alpha
+alpha={}
+# Matrix of alpha
+
+M_G_alpha={}
+# alpha symmetrics part 
+A_9={}
+
+
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        alpha[s,k]=m.addVar(ub=0,lb=-MM,vtype=GRB.CONTINUOUS,name='alpha_s_{}_k_{}'.format(str(s),str(k)))
+m.update()
+                                  
+                        
+                                  
+#define matrix of  alpha    G(alpha)                           
+
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        M_alpha=np.zeros(((S+3)*K+2,(S+3)*K+2))
+        M_alpha[ 1+(s-1)*K+k    -1           ,1+  S*K+k -1                          ]=-1/2
+        M_alpha[ 1+S*K+k        -1                , 1+ (s-1)*K+k    -1              ]=-1/2    
+        #print((s-1)*K+k    -1, S*K+k        -1)
+        M_G_alpha[s,k]=M_alpha
+        A_9[s,k]=M_G_alpha[s,k]*alpha[s,k]  
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        print(A_9[s,k][11,12])
+        print(A_9[s,k][12,11])
+
+
+# In[45]:
+
+
+M_G_alpha[1,4]
+
+
+# In[46]:
+
+
+'''
+M_G_alpha[1,1]
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        check_symmetric(M_G_alpha[s,k])
+
+'''
+
+
+# In[47]:
+
+
+# variable beta
+beta={}
+# Matrix of beta
+M_G_beta={}
+# beta symmetrics part 
+A_10={}
+
+
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        beta[s,k]=m.addVar(ub=MM,lb=0,vtype=GRB.CONTINUOUS,name='beta_s_{}_k_{}'.format(str(s),str(k)))
+m.update()
+                                                                 
+                                  
+#define matrix of  beta    G(beta)                           
+
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        M_beta=np.zeros(((S+3)*K+2,(S+3)*K+2))
+        M_beta[ 1+(s-1)*K+k    -1           ,1+  S*K+k -1                          ]=-1/2
+        M_beta[ 1+S*K+k        -1                , 1+ (s-1)*K+k    -1              ]=-1/2    
+        #print((s-1)*K+k    -1, S*K+k        -1)
+        M_G_beta[s,k]=M_beta
+        A_10[s,k]=M_G_beta[s,k]*beta[s,k]
+        
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        print(A_10[s,k][11,12])
+        print(A_10[s,k][12,11])
+
+
+# In[48]:
+
+
+'''
+M_G_beta[1,1]
+for s in range(1,S+1):
+    for k in range(1,K+1):
+        check_symmetric(M_G_beta[s,k])
+
+'''
+
+
+# In[49]:
+
+
+'''
+The Matrix of N_\iota
+'''
+N_iota={}
+M_N_iota={}
+A_11={}
+for i in range(1,I+1):
+    for j in range(1,(S+3)*K+2+1):
+        for k in range(1,(S+3)*K+2+1):
+            
+            if j==k:
+                N_iota[i,j,k]=m.addVar(ub=MM,lb=0,vtype=GRB.CONTINUOUS,name='N_iota_i_{}_j_{}_k_{}'.format(str(i),str(j),str(k)))
+            #m.addConstr(N_iota[i,j,k]-N_iota[i,k,j],GRB.EQUAL,0)
+
+for i in range(1,I+1):
+    for j in range(1,(S+3)*K+2+1):
+        for k in range(1,(S+3)*K+2+1):
+            if j<k:
+                N_iota[i,j,k]=m.addVar(ub=MM,lb=0,vtype=GRB.CONTINUOUS,name='N_iota_i_{}_j_{}_k_{}'.format(str(i),str(j),str(k)))
+                N_iota[i,k,j]=N_iota[i,j,k]
+            #m.addConstr(N_iota[i,j,k]-N_iota[i,k,j],GRB.EQUAL,0)
+
+
+
+            
+m.update()
+for i in range(1,I+1):
+    for j in range(1,(S+3)*K+2+1):
+        for k in range(1,(S+3)*K+2+1):
+            Matrix_initial_N=np.zeros(((S+3)*K+2,(S+3)*K+2))
+            Matrix_initial_N[j-1][k-1]=1
+            M_N_iota[i,j,k]=Matrix_initial_N
+            A_11[i,j,k]=M_N_iota[i,j,k]*N_iota[i,j,k]
