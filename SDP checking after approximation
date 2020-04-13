@@ -1,0 +1,247 @@
+solution_optimal=m.getVars()
+#for v in f_solution:
+    #print(v)
+
+#for v in range(0,len(f_solution)):
+    #print(f_solution[v])
+##print(f_solution[0])
+index_f_solution=0
+Internal_SDP_1={}              # create I internal SDP_series_1 LHS matrix 
+for i in range(1,I+1):
+    Internal_SDP_1[i]=np.zeros(((3+S)*K+2,(3+S)*K+2))
+    
+Internal_SDP_2={}              # create an internal SDP_2 LHS matrix 
+Internal_SDP_2=np.zeros(((3+S)*K+1,(3+S)*K+1))
+'''
+pil
+'''
+for i in range(1,I+1):
+    #print(f_solution[index_f_solution]  )
+    Internal_SDP_1[i]=Internal_SDP_1[i]+M_pil*solution_optimal[index_f_solution].x
+    #print('The index is %s'%index_f_solution)
+    index_f_solution+=1
+
+
+'''
+lam
+'''
+for i in range(1,I+1):
+    for j in range(1,3*K+2):
+        #print(f_solution[index_f_solution]  )
+        #print('lam')
+        #print(f_solution[index_f_solution+1]  )
+        Internal_SDP_1[i]=Internal_SDP_1[i]+M_lam[i,j]*solution_optimal[index_f_solution].x
+        index_f_solution+=1
+
+'''
+y
+'''
+for i in range(1,I+1):                                  # iota, index of subsystems
+    for j in range(1,J[i-1]+1):                              # j index of type in substems J_{\iota}, which is J_i
+        for k in range(1, N[i-1][j-1]+1):                    # k index of component in type j
+            #print('y')
+            #print(f_solution[index_f_solution+1]  )                    
+            Internal_SDP_1[i]=Internal_SDP_1[i]+M_y[i,j,k]*solution_optimal[index_f_solution].x
+            #print('The index is %s'%index_f_solution)
+            index_f_solution+=1
+
+'''
+phi
+'''
+for i in range(1,I+1):
+    for j in range(1,S*K+1):  
+        #print(f_solution[index_f_solution]  )
+        #print('phi')
+        Internal_SDP_1[i]=Internal_SDP_1[i]+M_phi[i,j]*solution_optimal[index_f_solution].x
+        #print('The index is %s'%index_f_solution)
+        index_f_solution+=1
+
+'''
+gam
+'''
+for j in range(1,S*K+1):  
+
+    for i in range(1,I+1):                
+        #gam_t
+        Internal_SDP_1[i]=Internal_SDP_1[i]-M_gam_t[j]*solution_optimal[index_f_solution].x
+        #print('The index is %s'%index_f_solution)
+    #gam_r
+    Internal_SDP_2=Internal_SDP_2-M_gam_r[j]*solution_optimal[index_f_solution].x
+    index_f_solution+=1
+
+'''
+varpi matrix 1~ 3*K+1
+''' 
+for i in range(1,I+1):          
+    for j in range(1,3*K+2):           # index of varpi, and the range is [2K+1, 3K]
+
+
+        Internal_SDP_1[i]=Internal_SDP_1[i]+M_varpi[i,j]*solution_optimal[index_f_solution].x
+        index_f_solution+=1
+'''
+
+w_ijkmn
+'''
+for i in range(1,I+1):
+    sum_1=0
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            sum_1+=1
+            sum_2=0
+            for u in range(1,J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    sum_2+=1
+                    if sum_1==sum_2:
+                        Internal_SDP_1[i]=Internal_SDP_1[i]+M_w_ijkmn[i,j,k,u,v]*solution_optimal[index_f_solution].x
+                        index_f_solution+=1
+
+for i in range(1,I+1):
+    sum_1=0
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+            sum_1+=1
+            sum_2=0
+            for u in range(1,J[i-1]+1):
+                for v in range(1,N[i-1][u-1]+1):
+                    sum_2+=1
+                    if sum_1<sum_2:
+                        Internal_SDP_1[i]=Internal_SDP_1[i]+M_w_ijkmn[i,j,k,u,v]*solution_optimal[index_f_solution].x
+                        Internal_SDP_1[i]=Internal_SDP_1[i]+M_w_ijkmn[i,u,v,j,k]*solution_optimal[index_f_solution].x
+                        index_f_solution+=1
+
+'''
+u
+'''
+for i in range(1,I+1):
+    for j in range(1,J[i-1]+1):
+        for k in range(1,N[i-1][j-1]+1):
+
+
+            Internal_SDP_1[i]= Internal_SDP_1[i]+M_u_ijk[i,j,k]*solution_optimal[index_f_solution].x
+
+            #print('u')
+            #print(f_solution[index_f_solution+1]  )
+            index_f_solution+=1
+'''
+alpha
+'''
+for s in range(1,S+1):
+    for k in range(1,K+1):
+
+        for i in range(1,I+1):    
+            Internal_SDP_1[i]=Internal_SDP_1[i]- M_G_alpha[s,k]*solution_optimal[index_f_solution].x
+        Internal_SDP_2=Internal_SDP_2-M_tilde_G_alpha[s,k]*solution_optimal[index_f_solution].x
+        index_f_solution+=1
+'''
+beta
+'''
+for s in range(1,S+1):
+    for k in range(1,K+1):
+
+        for i in range(1,I+1):            
+            Internal_SDP_1[i]= Internal_SDP_1[i]-M_G_beta[s,k]*solution_optimal[index_f_solution].x
+        Internal_SDP_2=Internal_SDP_2-M_tilde_G_beta[s,k]*solution_optimal[index_f_solution].x  
+
+        # print('beta')
+        #print(f_solution[index_f_solution+1]  )
+        index_f_solution+=1
+
+'''
+N_i
+'''
+for i in range(1,I+1):
+    for j in range(1,(S+3)*K+2+1):
+        for k in range(1,(S+3)*K+2+1):
+            if j==k:
+
+                Internal_SDP_1[i]=Internal_SDP_1[i]- M_N_iota[i,j,k]*solution_optimal[index_f_solution].x
+                index_f_solution+=1         
+for i in range(1,I+1):
+    for j in range(1,(S+3)*K+2+1):
+        for k in range(1,(S+3)*K+2+1):
+            if j<k:
+                Internal_SDP_1[i]=Internal_SDP_1[i]- M_N_iota[i,j,k]*solution_optimal[index_f_solution].x
+                Internal_SDP_1[i]=Internal_SDP_1[i]-M_N_iota[i,k,j]*solution_optimal[index_f_solution].x
+                index_f_solution+=1     
+'''
+nu
+'''
+
+Internal_SDP_2=Internal_SDP_2+M_nu*solution_optimal[index_f_solution].x
+index_f_solution+=1   
+#print('nu')
+#print(f_solution[index_f_solution+1]  )
+'''
+theta
+'''
+for j in range(1,3*K+1):
+
+    Internal_SDP_2=Internal_SDP_2+M_theta[j]*solution_optimal[index_f_solution].x
+    index_f_solution+=1   
+'''
+varpi
+'''
+for j in range(1,S*K+1):   
+
+    Internal_SDP_2=Internal_SDP_2+M_varphi[j]*solution_optimal[index_f_solution].x
+    index_f_solution+=1   
+'''
+vartheta
+'''
+for j in range(1,3*K+1):     
+    #print(f_solution[index_f_solution+1]  )
+    Internal_SDP_2=Internal_SDP_2+M_vartheta[j]*solution_optimal[index_f_solution].x
+    index_f_solution+=1   
+    #print('vartheta')
+'''
+N_0
+'''
+for j in range(1,(S+3)*K+1+1):
+    for k in range(1,(S+3)*K+1+1):
+        if j==k:
+            Internal_SDP_2=Internal_SDP_2-M_N_0[j,k]*solution_optimal[index_f_solution].x
+            index_f_solution+=1   
+for j in range(1,(S+3)*K+1+1):
+    for k in range(1,(S+3)*K+1+1):
+        if j<k:
+            Internal_SDP_2=Internal_SDP_2-M_N_0[j,k]*solution_optimal[index_f_solution].x
+            Internal_SDP_2=Internal_SDP_2-M_N_0[k,j]*solution_optimal[index_f_solution].x
+            index_f_solution+=1   
+             
+
+
+# In[97]:
+
+
+#Internal_SDP_2
+
+
+# In[98]:
+
+
+for i in range(1,I+1):
+    try:
+        value1_min,vector1_min= eigsh(Internal_SDP_1[i], k=1,which='SM')
+    except :
+        value1,vector1=np.linalg.eigh(Internal_SDP_1[i])
+        value1_min=value1[np.argmin(value1)]
+        vector1_min=vector1[np.argmin(value1)]
+    print(value1_min)
+    if value1_min>=-(10**(-3)):
+        print('thet optimal value correlated minimal eig value is %s '%(value1_min))
+
+
+# In[99]:
+
+
+if value2_min>=-(10**(-3)):
+    try:
+        value2_min,vector2_min= eigsh(Internal_SDP_2, k=1,which='SM')
+
+    except :
+        value2,vector2=np.linalg.eigh(Internal_SDP_2)
+        value2_min=value2[np.argmin(value2)]
+        vector2_min=vector2[np.argmin(value2)]
+
+        #print(value2_min)
+    print('thet optimal value correlated minimal eig value is %s '%(value2_min))
